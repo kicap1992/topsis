@@ -1,10 +1,11 @@
 // get the http url
 var url = window.location.href;
 // console.log(url)
-var server_url = url;
-var server_url_api = server_url + "api/";
-// var server_url = "http://192.168.218.237/absensi_server/";
-// var server_url_api = "http://192.168.218.237/absensi_server/api/";
+// var server_url = url;
+// var server_url_api = server_url + "api/";
+var server_url = "http://127.0.0.1/coba/";
+var server_url_api = "http://127.0.0.1/coba/api/";
+console.log(server_url, server_url_api)
 
 const delay = ms => new Promise(res => setTimeout(res, ms));
 

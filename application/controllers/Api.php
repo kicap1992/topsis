@@ -42,12 +42,12 @@ class Api extends RestController
     $username = $this->get('username');
     $password = $this->get('password');
 
-    $cek_data = $this->model->tampil_data_where('tb_login_admin', ['username' => $username, 'password' => md5($password)])->result();
+    // $cek_data = $this->model->tampil_data_where('tb_login_admin', ['username' => $username, 'password' => md5($password)])->result();
 
-    if (count($cek_data) > 0) {
-      $cek_data_admin = $this->model->tampil_data_where('tb_admin', ['nik' => $cek_data[0]->nik])->result()[0];
-      $cek_data_dinas = $this->model->tampil_data_where('tb_dinas', ['id_dinas' => $cek_data_admin->id_dinas])->result()[0];
-      $this->session->set_userdata(['nik' => $cek_data_admin->nik, "level" => $cek_data_admin->level, 'id_dinas' => $cek_data_dinas->id_dinas]);
+    if ($username == 'admin' && $password == 'admin') {
+      // $cek_data_admin = $this->model->tampil_data_where('tb_admin', ['nik' => $cek_data[0]->nik])->result()[0];
+      // $cek_data_dinas = $this->model->tampil_data_where('tb_dinas', ['id_dinas' => $cek_data_admin->id_dinas])->result()[0];
+      $this->session->set_userdata(['nik' => 'Admin', "level" => 'Admin']);
       $this->response(['message' => "Sukses Login", "status" => true], 200);
     } else {
       $this->session->unset_userdata(array('nik', "level"));
@@ -58,487 +58,389 @@ class Api extends RestController
 
   }
 
-  public function pengaturan_lokasi_put() // pengaturan titik kordinat dinas
+  public function penduduk_get() // tampil data penduduk
   {
-    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Failed', 'stat' => false], 401);
-    $lat = $this->put('lat');
-    $lng = $this->put('lng');
-    $id = $this->put('id');
+    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Not Allowed'], 401);
+    $nik = $this->get('nik');
+    $cek_data = $this->model->tampil_data_where('tb_penduduk', ['nik' => $nik])->result();
+    if (count($cek_data) == 0) return $this->response(['message' => 'Data Tidak Ditemukan', 'data' => null], 400);
 
-    if ($lat == null || $lat == '' || $lng == null || $lng == '' || $id == null || $id == '') {
-      $this->response(['message' => 'Isi Semua Form', 'stat' => false], 401);
-    }
-
-
-    $cek_data = $this->model->tampil_data_where('tb_dinas', ['id_dinas' => $id])->result();
-
-    if (count($cek_data) > 0) {
-      $this->model->update('tb_dinas', ['id_dinas' => $id], ['lat' => $lat, 'lng' => $lng]);
-      $this->session->set_flashdata('info', 'Titik Kordinat Berhasil Diubah');
-      $this->response(['message' => 'Sukses Tukar Kordinat ' . $cek_data[0]->dinas], 200);
-    } else {
-      $this->response(['message' => 'Data Tiada', 'stat' => false], 403);
-    }
-
-    // $this->response(['res' => 'ok','url' => $id], 200);
-
+    $this->response(['message' => 'Data Ditemukan', 'data' => $cek_data[0]], 200);
   }
 
-  public function pengaturan_radius_put() // pengaturan titik kordinat dinas
+  public function penduduk_post() // tambah data penduduk
   {
-    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Failed', 'stat' => false], 401);
-    $radius = $this->put('radius');
-    $id = $this->put('id');
+    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Not Allowed'], 401);
 
-    if ($radius == null || $radius == '' || $id == null || $id == '') {
-      $this->response(['message' => 'Isi Semua Form', 'stat' => false], 401);
-    }
-
-
-    $cek_data = $this->model->tampil_data_where('tb_dinas', ['id_dinas' => $id])->result();
-
-    if (count($cek_data) > 0) {
-      $this->model->update('tb_dinas', ['id_dinas' => $id], ['radius' => $radius]);
-      $this->session->set_flashdata('info', 'Radius Berhasil Diubah');
-      $this->response(['message' => 'Sukses Ubah Radius ' . $cek_data[0]->dinas], 200);
-    } else {
-      $this->response(['message' => 'Data Tiada', 'stat' => false], 403);
-    }
-
-    // $this->response(['res' => 'ok','url' => $id], 200);
-
-  }
-
-  public function karyawan_post() // penambahan_karyawan
-  {
-    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Failed', 'stat' => false], 401);
-    $id_dinas = $this->post('id_dinas');
-    // $foto = $_FILES['foto'];
-    $foto = $this->post('foto') == 'tiada' ? null : $_FILES['foto'];
     $nik = $this->post('nik');
     $nama = $this->post('nama');
-    $no_telpon = $this->post('no_telpon');
-    $jabatan = $this->post('jabatan');
+    $tgl_lahir = $this->post('tgl_lahir');
+    $jenis_kelamin = $this->post('jenis_kelamin');
     $alamat = $this->post('alamat');
-    $status_form = $this->post('status_form');
-    $status = $this->post('status');
-    $pangkat = $this->post('pangkat');
-    $status = $this->post('status');
-    $tanggal_lahir = $this->post('tanggal_lahir');
+    $no_hp = $this->post('no_hp');
 
-    if ($id_dinas == null || $id_dinas == '' || $nik == null || $nik == '' || $nama == null || $nama == '' || $no_telpon == null || $no_telpon == '' || $jabatan == null || $jabatan == '' || $alamat == null || $alamat == '' || $status_form == null || $status_form == '' || $pangkat == null || $pangkat == '' || $tanggal_lahir == null || $tanggal_lahir == '') {
-      $this->response(['message' => 'Isi Semua Form', 'stat' => false], 401);
-    }
+    $cek_nik = $this->model->tampil_data_where('tb_penduduk', ['nik' => $nik])->result();
 
-    $cek_dinas = $this->model->tampil_data_where('tb_dinas', ['id_dinas' => $id_dinas])->result();
+    if (count($cek_nik) > 0) return $this->response(['message' => 'NIK ' . $nik . ' sudah terdaftar'], 400);
 
-    if (count($cek_dinas) == 0) return $this->response(['message' => 'Dinas Tidak Ditemukan', 'stat' => false], 401);
+    $data = [
+      'nik' => $nik,
+      'nama' => $nama,
+      'tgl_lahir' => $tgl_lahir,
+      'jenis_kelamin' => $jenis_kelamin,
+      'alamat' => $alamat,
+      'no_hp' => $no_hp,
+    ];
 
-
-    if ($status_form == 'tambah') {
-      $cek_data = $this->model->tampil_data_where('tb_karyawan', ['nik' => $nik])->result();
-
-      if (count($cek_data) > 0) {
-        $this->response(['message' => 'Karyawan Dengan NIK ' . $nik . " telah terdaftar di sistem", 'stat' => false], 403);
-      } else {
-        $dir = "assets/images/foto_karyawan/$nik/";
-
-        if (is_dir($dir) === false) {
-          mkdir($dir);
-        }
-
-        $path = $dir . $foto['name'];
-        move_uploaded_file($foto['tmp_name'], $path);
-        $image_path = $path;
-
-        $this->model->insert("tb_karyawan", ['nik' => $nik, 'nama' => $nama, 'no_telpon' => $no_telpon, 'jabatan' => $jabatan, 'alamat' => $alamat, "id_dinas" => $id_dinas, "image" => $image_path, "status" => $status, "pangkat" => $pangkat, "tanggal_lahir" => $tanggal_lahir]);
-        $this->model->insert("tb_login_user", ["username" => $nik, "password" => md5("12345678"), "nik" => $nik]);
-        $this->response(['message' => 'Karyawan Dengan NIK ' . $nik . " berhasil didaftar di sistem\nUsername : " . $nik . "\nPassword : 12345678"], 201);
-      }
-    }
-
-    if ($status_form == 'edit') {
-      $cek_data = $this->model->tampil_data_where('tb_karyawan', ['nik' => $nik, "id_dinas" => $id_dinas])->result();
+    $this->model->insert('tb_penduduk', $data);
 
 
-      if (count($cek_data) == 0) return $this->response(['message' => 'Karyawan Tidak Ditemukan', 'stat' => false], 401);
-
-      if ($foto == null) {
-        $this->model->update("tb_karyawan", ['nik' => $nik, "id_dinas" => $id_dinas], ["nama" => $nama, "no_telpon" => $no_telpon, "jabatan" => $jabatan, "alamat" => $alamat, "status" => $status, "pangkat" => $pangkat, "tanggal_lahir" => $tanggal_lahir]);
-      } else {
-        $dir = "assets/images/foto_karyawan/$nik/";
-        if (is_dir($dir) === false) {
-          mkdir($dir);
-        }
-
-        $files = glob($dir . '*'); // get all file names
-        foreach ($files as $file) { // iterate files
-          if (is_file($file)) {
-            unlink($file); // delete file
-          }
-        }
-
-
-        $path = $dir . $foto['name'];
-        move_uploaded_file($foto['tmp_name'], $path);
-        $image_path = $path;
-
-        $this->model->update("tb_karyawan", ['nik' => $nik, "id_dinas" => $id_dinas], ["nama" => $nama, "no_telpon" => $no_telpon, "jabatan" => $jabatan, "alamat" => $alamat,  "image" => $image_path, "status" => $status, "pangkat" => $pangkat, "tanggal_lahir" => $tanggal_lahir]);
-      }
-
-
-
-      $this->response(['message' => 'Data Karyawan Berhasil Diubah'], 200);
-    }
-
-
-
-    // $this->response(['res' => 'ok', 'url' => $status], 200);
+    $this->response(['message' => 'Data dengan NIK ' . $nik . ' berhasil ditambahkan'], 200);
   }
 
-  public function karyawanAll_get()
+  public function penduduk_put() // edit data penduduk
   {
-    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Failed', 'stat' => false], 401);
-    $check_data = $this->model->tampil_data_keseluruhan('tb_karyawan')->result();
-    $this->response(['data' => $check_data], 200);
-  }
+    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Not Allowed'], 401);
 
-  public function karyawan_get() // ambil data karyawan
-  {
-    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Failed', 'stat' => false], 401);
-    $id_dinas = $this->get('id_dinas');
-    $nik = $this->get('nik');
-
-
-    if ($id_dinas == null || $id_dinas == '' || $nik == null || $nik == '') {
-      $this->response(['message' => 'Isi Semua Form', 'stat' => false], 401);
-    }
-
-    $cek_dinas = $this->model->tampil_data_where('tb_dinas', ['id_dinas' => $id_dinas])->result();
-
-    if (count($cek_dinas) == 0) return $this->response(['message' => 'Dinas Tidak Ditemukan', 'stat' => false], 401);
-
-
-    $cek_data = $this->model->tampil_data_where('tb_karyawan', ['nik' => $nik])->result();
-
-    if (count($cek_data) == 0) return $this->response(['message' => 'Karyawan Tidak Ditemukan', 'stat' => false], 401);
-
-
-    $this->response(['data' => $cek_data[0]], 200);
-    // $this->response(['message' => 'Karyawan Tidak Ditemukan', 'stat' => false], 401);
-
-  }
-
-  public function karyawan_put() // edit data karyawan
-  {
-    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Failed', 'stat' => false], 401);
-    $id_dinas = $this->put('id_dinas');
-    $foto = $_FILES['foto'];
     $nik = $this->put('nik');
     $nama = $this->put('nama');
-    $no_telpon = $this->put('no_telpon');
-    $jabatan = $this->put('jabatan');
+    $tgl_lahir = $this->put('tgl_lahir');
+    $jenis_kelamin = $this->put('jenis_kelamin');
     $alamat = $this->put('alamat');
+    $no_hp = $this->put('no_hp');
 
-    // if ($id_dinas == null || $id_dinas == '' || $nik == null || $nik == '' || $nama == null || $nama == '' || $no_telpon == null || $no_telpon == '' || $jabatan == null || $jabatan == '' || $alamat == null || $alamat == '') {
-    //   $this->response(['message' => 'Isi Semua Form', 'stat' => false], 401);
-    // }
+    $cek_nik = $this->model->tampil_data_where('tb_penduduk', ['nik' => $nik])->result();
 
-    // $cek_dinas = $this->model->tampil_data_where('tb_dinas',['id_dinas' => $id_dinas])->result();
+    if (count($cek_nik) == 0) return $this->response(['message' => 'NIK ' . $nik . ' tidak terdaftar'], 400);
 
-    // if(count($cek_dinas) == 0) return $this->response(['message' => 'Dinas Tidak Ditemukan', 'stat' => false], 401);
+    $data = [
+      'nama' => $nama,
+      'tgl_lahir' => $tgl_lahir,
+      'jenis_kelamin' => $jenis_kelamin,
+      'alamat' => $alamat,
+      'no_hp' => $no_hp,
+    ];
 
+    $this->model->update('tb_penduduk', ['nik' => $nik], $data);
 
-    // $cek_data = $this->model->tampil_data_where('tb_karyawan', ['nik' => $nik, "id_dinas" => $id_dinas])->result();
-
-    // if (count($cek_data) == 0) return $this->response(['message' => 'Karyawan Tidak Ditemukan', 'stat' => false], 401);
-
-    // $this->model->update("tb_karyawan",['nik' => $nik, "id_dinas" => $id_dinas], ["nama" => $nama , "no_telpon" => $no_telpon , "jabatan" => $jabatan, "alamat" => $alamat]);
-
-    // $this->response(['message' => '"Data Karyawan Berhasil Diubah'], 200);
-    $this->response(['message' => $foto], 200);
+    $this->response(['message' => 'Data dengan NIK ' . $nik . ' berhasil diubah'], 200);
   }
 
-  public function karyawan_delete() // edit data karyawan
+
+  public function penduduk_delete() // hapus data penduduk
   {
-    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Failed', 'stat' => false], 401);
-    $id_dinas = $this->delete('id_dinas');
+    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Not Allowed'], 401);
+
     $nik = $this->delete('nik');
 
+    $cek_nik = $this->model->tampil_data_where('tb_penduduk', ['nik' => $nik])->result();
 
-    if ($id_dinas == null || $id_dinas == '' || $nik == null || $nik == '') {
-      $this->response(['message' => 'Isi Semua Form', 'stat' => false], 401);
-    }
+    if (count($cek_nik) == 0) return $this->response(['message' => 'NIK ' . $nik . ' tidak terdaftar'], 400);
 
-    $cek_dinas = $this->model->tampil_data_where('tb_dinas', ['id_dinas' => $id_dinas])->result();
+    $this->model->delete('tb_penduduk', ['nik' => $nik]);
 
-    if (count($cek_dinas) == 0) return $this->response(['message' => 'Dinas Tidak Ditemukan', 'stat' => false], 401);
-
-
-    $cek_data = $this->model->tampil_data_where('tb_karyawan', ['nik' => $nik, "id_dinas" => $id_dinas])->result();
-
-    if (count($cek_data) == 0) return $this->response(['message' => 'Karyawan Tidak Ditemukan', 'stat' => false], 401);
-
-    $this->model->delete("tb_karyawan", ['nik' => $nik, "id_dinas" => $id_dinas]);
-
-    $this->response(['message' => "Data Karyawan Berhasil Dihapus"], 200);
+    $this->response(['message' => 'Data dengan NIK ' . $nik . ' berhasil dihapus'], 200);
+    // $this -> response(['message' => $nik], 200);
   }
 
-  public function jam_kerja_post() // edit data karyawan
+  public function topsis_get()
   {
-    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Failed', 'stat' => false], 401);
-    $id_dinas = $this->post('id_dinas');
-    $hari = $this->post('hari');
-    $jam_masuk = $this->post('jam_masuk');
-    $jam_istirehat = $this->post('jam_istirehat');
-    $jam_masuk_kembali = $this->post('jam_masuk_kembali');
-    $jam_pulang = $this->post('jam_pulang');
+    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Not Allowed'], 401);
 
+    $nik = $this->get('nik');
+    $cek_nik = $this->model->tampil_data_where('tb_penduduk', ['nik' => $nik])->result();
 
-    if ($id_dinas == null || $id_dinas == '' || $hari == null || $hari == '' || $jam_masuk == null || $jam_masuk == '' || $jam_istirehat == null || $jam_istirehat == '' || $jam_masuk_kembali == null || $jam_masuk_kembali == '' || $jam_pulang == null || $jam_pulang == '') {
-      $this->response(['message' => 'Isi Semua Form', 'stat' => false], 401);
-    }
+    if (count($cek_nik) == 0) return $this->response(['message' => 'NIK ' . $nik . ' tidak terdaftar'], 400);
 
-    $cek_dinas = $this->model->tampil_data_where('tb_dinas', ['id_dinas' => $id_dinas])->result();
-
-    if (count($cek_dinas) == 0) return $this->response(['message' => 'Dinas Tidak Ditemukan', 'stat' => false], 401);
-
-
-    $cek_data = $this->model->tampil_data_where('tb_pengaturan_jam_kerja_harian', ['hari' => $hari, "id_dinas" => $id_dinas])->result();
-
+    $cek_data = $this->model->tampil_data_where('tb_detail', ['nik' => $nik])->result();
     if (count($cek_data) == 0) {
-      $this->model->insert("tb_pengaturan_jam_kerja_harian", ['hari' => $hari, "id_dinas" => $id_dinas, "jam_masuk" => $jam_masuk,  "jam_istirehat" => $jam_istirehat, "jam_masuk_kembali" => $jam_masuk_kembali, "jam_pulang" => $jam_pulang]);
+      $this->response(['message' => 'Data Tidak Ditemukan', 'data' => null], 200);
     } else {
-      $this->model->update("tb_pengaturan_jam_kerja_harian", ['hari' => $hari, "id_dinas" => $id_dinas], ["jam_masuk" => $jam_masuk,  "jam_istirehat" => $jam_istirehat, "jam_masuk_kembali" => $jam_masuk_kembali, "jam_pulang" => $jam_pulang]);
+      $this->response(['message' => 'Data Ditemukan', 'data' => $cek_data[0]], 200);
     }
-    // $this->model->delete("tb_karyawan",['nik' => $nik, "id_dinas" => $id_dinas]);
-    // $this->session->set_flashdata('info',"Jam Kerja Hari ".ucfirst($hari)." Berhasil Diubah");
-    $this->response(['message' => "Jam Kerja Hari " . ucfirst($hari), " Berhasil Diubah"], 200);
   }
 
-  public function jam_kerja_get() // edit data karyawan
+  public function topsis_post()
   {
-    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Failed', 'stat' => false], 401);
-    $id_dinas = $this->get('id_dinas');
+    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Not Allowed'], 401);
+    $nik = $this->post('nik');
+    $bobot_umur = $this->post('bobot_umur');
+    $bobot_pekerjaan = $this->post('bobot_pekerjaan');
+    $bobot_penghasilan = $this->post('bobot_penghasilan');
+    $bobot_jumlah_tanggungan = $this->post('bobot_jumlah_tanggungan');
+    $bobot_jenis_rumah = $this->post('bobot_jenis_rumah');
 
+    $cek_nik = $this->model->tampil_data_where('tb_penduduk', ['nik' => $nik])->result();
 
-    if ($id_dinas == null || $id_dinas == '') {
-      $this->response(['message' => 'Isi Semua Form', 'stat' => false], 401);
+    if (count($cek_nik) == 0) return $this->response(['message' => 'NIK ' . $nik . ' tidak terdaftar'], 400);
+
+    $data = [
+      'bobot_umur' => $bobot_umur,
+      'bobot_pekerjaan' => $bobot_pekerjaan,
+      'bobot_penghasilan' => $bobot_penghasilan,
+      'bobot_jumlah_tanggungan' => $bobot_jumlah_tanggungan,
+      'bobot_jenis_rumah' => $bobot_jenis_rumah,
+    ];
+    $cek_data = $this->model->tampil_data_where('tb_detail', ['nik' => $nik])->result();
+    if (count($cek_data) == 0) {
+      $data['nik'] = $nik;
+      $this->model->insert('tb_detail', $data);
+    } else {
+      $this->model->update('tb_detail', ['nik' => $nik], $data);
     }
 
-    $cek_dinas = $this->model->tampil_data_where('tb_dinas', ['id_dinas' => $id_dinas])->result();
-
-    if (count($cek_dinas) == 0) return $this->response(['message' => 'Dinas Tidak Ditemukan', 'stat' => false], 401);
 
 
-    $cek_data = $this->model->tampil_data_where('tb_pengaturan_jam_kerja_harian', ["id_dinas" => $id_dinas])->result();
+    $this->response(['message' => ""], 200);
+  }
+
+  public function bantuan_get()
+  {
+    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Not Allowed'], 401);
+
+    $cek_detail = $this->model->tampil_data_keseluruhan('tb_detail')->result();
+    $bobotall = [];
+    foreach ($cek_detail as $key => $value) {
+      $array = [
+        $value->bobot_umur,
+        $value->bobot_pekerjaan,
+        $value->bobot_penghasilan,
+        $value->bobot_jumlah_tanggungan,
+        $value->bobot_jenis_rumah,
+      ];
+      array_push($bobotall, $array);
+    }
+
+    $the_bobotall = [];
+    foreach ($cek_detail as $key => $value) {
+      $array = [
+        'nik' => $value->nik,
+        'kriteria_umur' => $value->bobot_umur,
+        'kriteria_pekerjaan' => $value->bobot_pekerjaan,
+        'kriteria_penghasilan' => $value->bobot_penghasilan,
+        'kriteria_jumlah_tanggungan' => $value->bobot_jumlah_tanggungan,
+        'kriteria_jenis_rumah' => $value->bobot_jenis_rumah,
+
+      ];
+      array_push($the_bobotall, $array);
+    }
+
+    $bobot = [4, 4, 4, 4, 4];
+
+    $matriks_keputusan  = $this->MatrixKeputusan($bobotall);
+
+    $the_matrix_keputusan = [];
+    foreach ($cek_detail as $key => $value) {
+      $array = [
+        'nik' => $cek_detail[$key]->nik,
+        'kriteria_umur' => $matriks_keputusan[$key][0],
+        'kriteria_pekerjaan' => $matriks_keputusan[$key][1],
+        'kriteria_penghasilan' => $matriks_keputusan[$key][2],
+        'kriteria_jumlah_tanggungan' => $matriks_keputusan[$key][3],
+        'kriteria_jenis_rumah' => $matriks_keputusan[$key][4],
+      ];
+      array_push($the_matrix_keputusan, $array);
+    }
+
+    $totalmatriks_keputusan  = $this->TotMatrixKeputusan($matriks_keputusan);
+    $matriks_normalisasi = $this->MatrixTernormalisasi($bobotall, $totalmatriks_keputusan);
+    $the_matrix_normalisasi = [];
+    foreach ($cek_detail as $key => $value) {
+      $array = [
+        'nik' => $cek_detail[$key]->nik,
+        'kriteria_umur' => $matriks_normalisasi[$key][0],
+        'kriteria_pekerjaan' => $matriks_normalisasi[$key][1],
+        'kriteria_penghasilan' => $matriks_normalisasi[$key][2],
+        'kriteria_jumlah_tanggungan' => $matriks_normalisasi[$key][3],
+        'kriteria_jenis_rumah' => $matriks_normalisasi[$key][4],
+      ];
+      array_push($the_matrix_normalisasi, $array);
+    }
+
+    $normalisasi_terbobot =  $this->TermTerbobot($matriks_normalisasi, $bobot);
+    $the_normalisasi_terbobot = [];
+    foreach ($cek_detail as $key => $value) {
+      $array = [
+        'nik' => $cek_detail[$key]->nik,
+        'kriteria_umur' => $normalisasi_terbobot[$key][0],
+        'kriteria_pekerjaan' => $normalisasi_terbobot[$key][1],
+        'kriteria_penghasilan' => $normalisasi_terbobot[$key][2],
+        'kriteria_jumlah_tanggungan' => $normalisasi_terbobot[$key][3],
+        'kriteria_jenis_rumah' => $normalisasi_terbobot[$key][4],
+      ];
+      array_push($the_normalisasi_terbobot, $array);
+      $this->model->update('tb_detail', ['nik' => $cek_detail[$key]->nik], ['normalisasi' => json_encode($normalisasi_terbobot[$key])]);
+    }
+    $ideal_positif = $this->SolusiIdealPositif($normalisasi_terbobot);
+    $the_ideal_positif = [
+      'kriteria_umur' => $ideal_positif[0],
+      'kriteria_pekerjaan' => $ideal_positif[1],
+      'kriteria_penghasilan' => $ideal_positif[2],
+      'kriteria_jumlah_tanggungan' => $ideal_positif[3],
+      'kriteria_jenis_rumah' => $ideal_positif[4],
+    ];
+
+    $ideal_negatif = $this->SolusiIdealNegatif($normalisasi_terbobot);
+
+    $the_ideal_negatif = [
+      'kriteria_umur' => $ideal_negatif[0],
+      'kriteria_pekerjaan' => $ideal_negatif[1],
+      'kriteria_penghasilan' => $ideal_negatif[2],
+      'kriteria_jumlah_tanggungan' => $ideal_negatif[3],
+      'kriteria_jenis_rumah' => $ideal_negatif[4],
+    ];
 
 
-    $this->response(['data' => $cek_data], 200);
+    $solusiideal = array();
+    $solusiideal[] = $ideal_positif;
+    $solusiideal[] = $ideal_negatif;
+
+    $jarak_solusi = $this->JarakSolusi($normalisasi_terbobot, $solusiideal);
+    $preverensi = $this->Preverensi($jarak_solusi);
+    $the_preverensi = [];
+    foreach ($cek_detail as $key => $value) {
+      $array = [
+        'nik' => $cek_detail[$key]->nik,
+        'preverensi' => $preverensi[$key],
+      ];
+      array_push($the_preverensi, $array);
+      $this->model->update('tb_detail', ['nik' => $cek_detail[$key]->nik], ['preverensi' => json_encode($preverensi[$key])]);
+      $status = ($preverensi[$key] >= 0.5) ? 'Layak' : 'Tidak Layak';
+      $this->model->update('tb_detail', ['nik' => $cek_detail[$key]->nik], ['status' => $status]);
+    }
+    $this->response(["bobot" => $the_bobotall, 'matriks_keputusan' => $the_matrix_keputusan, "matriks_normalisasi" => $the_matrix_normalisasi, 'normalisasi_terbobot' => $the_normalisasi_terbobot, 'ideal_positif' => $the_ideal_positif, "ideal_negatif" => $the_ideal_negatif, 'preverensi' => $the_preverensi], 200);
   }
 
 
-  public function libur_post()
+  function MatrixKeputusan($matrix)
   {
-    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Failed', 'stat' => false], 401);
-    $id_dinas = $this->post('id_dinas');
-    $list_karyawan = $this->post('list_karyawan');
-    $start_tanggal = $this->post('start_tanggal');
-    $end_tanggal = $this->post('end_tanggal');
-    $ket = $this->post('ket');
-
-    if ($id_dinas == null || $id_dinas == '' || $list_karyawan == null || $list_karyawan == '' || $start_tanggal == null || $start_tanggal == '' || $end_tanggal == null || $end_tanggal == '' || $ket == null || $ket == '') {
-      $this->response(['message' => 'Isi Semua Form', 'stat' => false], 401);
-    }
-
-    $cek_dinas = $this->model->tampil_data_where('tb_dinas', ['id_dinas' => $id_dinas])->result();
-
-    if (count($cek_dinas) == 0) return $this->response(['message' => 'Dinas Tidak Ditemukan', 'stat' => false], 401);
-
-    $period = new DatePeriod(
-      new DateTime($start_tanggal),
-      new DateInterval('P1D'),
-      new DateTime($end_tanggal)
-    );
-
-    $cek_last_ai = $this->model->cek_last_ai('tb_libur');
-    $this->model->insert('tb_libur', ['id_dinas' => $id_dinas, 'list_karyawan' => $list_karyawan, 'range_tanggal' => $start_tanggal . " - " . $end_tanggal, 'ket' => $ket . " (" . $start_tanggal . " - " . $end_tanggal . ")", 'created_at' => date("Y-m-d H:i:s")]);
-    $converted_list_karyawan = json_decode($list_karyawan);
-
-
-    foreach ($converted_list_karyawan as $key1 => $value1) {
-      foreach ($period as $key => $value) {
-        $this->model->insert('tb_informasi_libur', ['id_libur' => $cek_last_ai, 'nik' => $value1, "tanggal" => $value->format('Y-m-d'), 'ket' => $ket . " (" . $start_tanggal . " - " . $end_tanggal . ")"]);
+    $all = [];
+    for ($i = 0; $i < count($matrix); $i++) {
+      $bobot = [];
+      for ($j = 0; $j < count($matrix[$i]); $j++) {
+        $x = $matrix[$i][$j] ** 2;
+        array_push($bobot, $x);
       }
-      $this->model->insert('tb_informasi_libur', ['id_libur' => $cek_last_ai, 'nik' => $value1, "tanggal" => $end_tanggal, 'ket' => $ket . " (" . $start_tanggal . " - " . $end_tanggal . ")"]);
+      array_push($all, $bobot);
     }
-    $this->response(['message' => "Data Libur Berhasil Dimasukkan"], 200);
+    return $all;
   }
 
-  public function libur_get()
+  function TotMatrixKeputusan($matrix)
   {
-    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Failed', 'stat' => false], 401);
-    $id_dinas = $this->get('id_dinas');
-    $id_libur = $this->get('id_libur');
-
-
-    if ($id_dinas == null || $id_dinas == '' || $id_libur == null || $id_libur == '') {
-      $this->response(['message' => 'Isi Semua Form', 'stat' => false], 401);
-    }
-
-    $cek_dinas = $this->model->tampil_data_where('tb_dinas', ['id_dinas' => $id_dinas])->result();
-
-    if (count($cek_dinas) == 0) return $this->response(['message' => 'Dinas Tidak Ditemukan', 'stat' => false], 401);
-
-    $check_data = $this->model->tampil_data_where('tb_libur', ['id_libur' => $id_libur, "id_dinas" => $id_dinas])->result();
-
-    if (count($check_data) == 0) return $this->response(['message' => 'Informasi Libur Tidak Ditemukan', 'stat' => false], 401);
-
-    $data = array();
-
-    $data['range_tanggal'] = $check_data[0]->range_tanggal;
-    $data['ket'] = $check_data[0]->ket;
-    $data['created_at'] = $check_data[0]->created_at;
-
-    $data['list_karyawan'] = '';
-
-    $list_karyawan = json_decode($check_data[0]->list_karyawan);
-
-    foreach ($list_karyawan as $key => $value) {
-      $check_karyawan = $this->model->tampil_data_where('tb_karyawan', ['nik' => $value])->result();
-      $data['list_karyawan']  .= " " . $check_karyawan[0]->nama . ' ,';
-    }
-
-    $data['list_karyawan']  = rtrim($data['list_karyawan'] ,",");
-
-
-
-    $this->response(['data' => $data], 200);
-  }
-
-  public function perjalanan_dinas_post()
-  {
-    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Failed', 'stat' => false], 401);
-    $id_dinas = $this->post('id_dinas');
-    $list_karyawan = $this->post('list_karyawan');
-    $start_tanggal = $this->post('start_tanggal');
-    $end_tanggal = $this->post('end_tanggal');
-    $ket = $this->post('ket');
-
-    if ($id_dinas == null || $id_dinas == '' || $list_karyawan == null || $list_karyawan == '' || $start_tanggal == null || $start_tanggal == '' || $end_tanggal == null || $end_tanggal == '' || $ket == null || $ket == '') {
-      $this->response(['message' => 'Isi Semua Form', 'stat' => false], 401);
-    }
-
-    $cek_dinas = $this->model->tampil_data_where('tb_dinas', ['id_dinas' => $id_dinas])->result();
-
-    if (count($cek_dinas) == 0) return $this->response(['message' => 'Dinas Tidak Ditemukan', 'stat' => false], 401);
-
-    $period = new DatePeriod(
-      new DateTime($start_tanggal),
-      new DateInterval('P1D'),
-      new DateTime($end_tanggal)
-    );
-
-    $cek_last_ai = $this->model->cek_last_ai('tb_perjalanan_dinas');
-    $this->model->insert('tb_perjalanan_dinas', ['id_dinas' => $id_dinas, 'list_karyawan' => $list_karyawan, 'range_tanggal' => $start_tanggal . " - " . $end_tanggal, 'ket' => $ket . " (" . $start_tanggal . " - " . $end_tanggal . ")", 'created_at' => date("Y-m-d H:i:s")]);
-    $converted_list_karyawan = json_decode($list_karyawan);
-
-
-    foreach ($converted_list_karyawan as $key1 => $value1) {
-      foreach ($period as $key => $value) {
-        $this->model->insert('tb_informasi_perjalanan_dinas', ['id_perjalanan_dinas' => $cek_last_ai, 'nik' => $value1, "tanggal" => $value->format('Y-m-d'), 'ket' => $ket . " (" . $start_tanggal . " - " . $end_tanggal . ")"]);
+    $total = [];
+    for ($i = 0; $i < count($matrix[0]); $i++) {
+      $tot = 0;
+      for ($j = 0; $j < count($matrix); $j++) {
+        $tot += $matrix[$j][$i];
       }
-      $this->model->insert('tb_informasi_perjalanan_dinas', ['id_perjalanan_dinas' => $cek_last_ai, 'nik' => $value1, "tanggal" => $end_tanggal, 'ket' => $ket . " (" . $start_tanggal . " - " . $end_tanggal . ")"]);
+      $total[] = $tot ** (1 / 2);
     }
-    $this->response(['message' => "Data Libur Berhasil Dimasukkan"], 200);
+    return $total;
   }
 
-  public function perjalanan_dinas_get()
+  function MatrixTernormalisasi($matrix1, $matrix2)
   {
-    if ($this->session->userdata('level') != 'Admin') return $this->response(['message' => 'Failed', 'stat' => false], 401);
-    $id_dinas = $this->get('id_dinas');
-    $id_perjalanan_dinas = $this->get('id_perjalanan_dinas');
-
-
-    if ($id_dinas == null || $id_dinas == '' || $id_perjalanan_dinas == null || $id_perjalanan_dinas == '') {
-      $this->response(['message' => 'Isi Semua Form', 'stat' => false], 401);
-    }
-
-    $cek_dinas = $this->model->tampil_data_where('tb_dinas', ['id_dinas' => $id_dinas])->result();
-
-    if (count($cek_dinas) == 0) return $this->response(['message' => 'Dinas Tidak Ditemukan', 'stat' => false], 401);
-
-    $check_data = $this->model->tampil_data_where('tb_perjalanan_dinas', ['id_perjalanan_dinas' => $id_perjalanan_dinas, "id_dinas" => $id_dinas])->result();
-
-    if (count($check_data) == 0) return $this->response(['message' => 'Informasi Libur Tidak Ditemukan', 'stat' => false], 401);
-
-    $data = array();
-
-    $data['range_tanggal'] = $check_data[0]->range_tanggal;
-    $data['ket'] = $check_data[0]->ket;
-    $data['created_at'] = $check_data[0]->created_at;
-
-    $data['list_karyawan'] = '';
-
-    $list_karyawan = json_decode($check_data[0]->list_karyawan);
-
-    foreach ($list_karyawan as $key => $value) {
-      $check_karyawan = $this->model->tampil_data_where('tb_karyawan', ['nik' => $value])->result();
-      $data['list_karyawan']  .= " " . $check_karyawan[0]->nama . ' ,';
-    }
-
-    $data['list_karyawan']  = rtrim($data['list_karyawan'] ,",");
-
-
-
-    $this->response(['data' => $data], 200);
-  }
-
-  public function get_today_absensi_get()
-  {
-    $id_dinas = $this->get('id_dinas');
-
-    if ($id_dinas == null || $id_dinas == '') {
-      $this->response(['message' => 'Isi Semua Form', 'stat' => false], 401);
-    }
-
-    $cek_dinas = $this->model->tampil_data_where('tb_dinas', ['id_dinas' => $id_dinas])->result();
-
-    if (count($cek_dinas) == 0) return $this->response(['message' => 'Dinas Tidak Ditemukan', 'stat' => false], 401);
-
-    $today = date("Y-m-d");
-
-    $check_data = $this->model->tampil_data_where('tb_absensi_karyawan', ['id_dinas' => $id_dinas, 'tanggal' => $today])->result();
-    $datanya = array();
-    if (count($check_data) > 0) {
-
-      foreach ($check_data as $key => $value) {
-        $check_data_karyawan = $this->model->tampil_data_where('tb_karyawan', ['nik' => $value->nik])->result();
-        $check_kordinat = $this->model->tampil_data_where('tb_kordinat_karyawan', ['nik' => $value->nik])->result();
-
-        $status = "Sedang Bekerja";
-
-        if ($check_data[$key]->jam_istirehat != null) {
-          $status = "Sedang Istirehat";
-        }
-        if ($check_data[$key]->jam_masuk_kembali != null) {
-          $status = "Sedang Bekerja";
-        }
-        if ($check_data[$key]->jam_pulang != null) {
-          $status = "Pulang Kerja";
-        }
-
-        $datanya[$key]['nik'] = $value->nik;
-        $datanya[$key]['nama'] = $check_data_karyawan[0]->nama;
-        $datanya[$key]['lat'] = floatval($check_kordinat[0]->lat);
-        $datanya[$key]['lng'] = floatval($check_kordinat[0]->lng);
-        $datanya[$key]['last_updated'] = $check_kordinat[0]->updated_at;
-        $datanya[$key]['status'] = $status;
+    $total = $matrix2;
+    $all = [];
+    for ($i = 0; $i < count($matrix1); $i++) {
+      $sub = [];
+      $k = 0;
+      for ($j = 0; $j < count($matrix1[$i]); $j++) {
+        $x = $matrix1[$i][$j] / $total[$k];
+        array_push($sub, $x);
+        $k++;
       }
+      array_push($all, $sub);
     }
+    return $all;
+  }
 
+  function TermTerbobot($matrix, $bobot)
+  {
+    $all = array();
+    for ($i = 0; $i < count($matrix); $i++) {
+      $sub = array();
+      $k = 0;
+      for ($j = 0; $j < count($matrix[$i]); $j++) {
+        $sub[] = $matrix[$i][$j] * $bobot[$k];
+        $k++;
+      }
+      $all[] = $sub;
+    }
+    return $all;
+  }
 
+  function SolusiIdealPositif($matrix)
+  {
+    $all = array();
+    for ($i = 0; $i < count($matrix[0]); $i++) {
+      $sub = array();
+      for ($j = 0; $j < count($matrix); $j++) {
+        array_push($sub, $matrix[$j][$i]);
+      }
+      array_push($all, $sub);
+    }
+    $sub1 = array();
+    for ($k = 0; $k < count($all); $k++) {
+      if ($all[$k] == $all[0] || $all[$k] == $all[2]) {
+        $val = min($all[$k]);
+      } else {
+        $val = max($all[$k]);
+      }
+      array_push($sub1, $val);
+    }
+    return $sub1;
+  }
 
-    $this->response(['data' =>  $datanya], 200);
+  function SolusiIdealNegatif($matrix)
+  {
+    $all = [];
+    for ($i = 0; $i < count($matrix[0]); $i++) {
+      $sub = [];
+      for ($j = 0; $j < count($matrix); $j++) {
+        $sub[] = $matrix[$j][$i];
+      }
+      $all[] = $sub;
+    }
+    $sub1 = [];
+    for ($k = 0; $k < count($all); $k++) {
+      if ($all[$k] == $all[0] || $all[$k] == $all[2]) {
+        $val = max($all[$k]);
+      } else {
+        $val = min($all[$k]);
+      }
+      $sub1[] = $val;
+    }
+    return $sub1;
+  }
+
+  function JarakSolusi($matrix1, $matrix2)
+  {
+    $all = [];
+    for ($n = 0; $n < 2; $n++) {
+      $solution = [];
+      for ($i = 0; $i < count($matrix1); $i++) {
+        $sub = [];
+        $k = 0;
+        for ($j = 0; $j < count($matrix1[$i]); $j++) {
+          $x = $matrix1[$i][$j] - $matrix2[$n][$k];
+          $sub[] = $x ** 2;
+          $k += 1;
+        }
+        $solution[] = array_sum($sub) ** (1 / 2);
+      }
+      $all[] = $solution;
+    }
+    return $all;
+  }
+
+  function Preverensi($matrix)
+  {
+    $all = array();
+    for ($i = 0; $i < count($matrix[0]); $i++) {
+      $all[] = $matrix[1][$i] / ($matrix[1][$i] + $matrix[0][$i]);
+    }
+    return $all;
   }
 }

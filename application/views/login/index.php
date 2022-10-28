@@ -9,7 +9,7 @@
 	<meta name="description" content="">
 	<meta name="author" content="">
 
-	<title>Sistem Kedisiplinan Dinas Pariwisata Dan Kebudayaan Kabupaten Mamuju Tengah - Halaman Login</title>
+	<title>Sistem Bantuan Sosial Tunai Dinas Sosial, Pariwisata dan Kebudayaan Pinrang - Halaman Login</title>
 	<link rel="stylesheet" href="<?= base_url() ?>assets/styles/style.min.css">
 
 	<link rel="apple-touch-icon" sizes="57x57" href="<?= base_url() ?>assets<?= base_url() ?>assets/images/favico/apple-icon-57x57.png">
@@ -44,9 +44,9 @@
 	<div id="single-wrapper">
 		<form action="#" class="frm-single" onsubmit="return login(event)">
 			<div class="inside">
-				<div class="title">Sistem Kedisiplinan</div>
+				<div class="title">Sistem Bantuan Sosial Tunai </div>
 				<!-- /.title -->
-				<div class="frm-title">Dinas Pariwisata Dan Kebudayaan Kabupaten Mamuju Tengah </div>
+				<div class="frm-title">Dinas Sosial, Pariwisata dan Kebudayaan Kabupaten Pinrang </div>
 				<!-- /.frm-title -->
 				<div class="frm-input"><input type="text" placeholder="Username" class="frm-inp" id="username" required><i class="fa fa-user frm-ico"></i></div>
 				<!-- /.frm-input -->
@@ -107,19 +107,19 @@
 					block_ui("Sedang Login");
 				},
 				success: function(response) {
-					$.unblockUI();
-					swal({
-						title: "Success",
-						text: "Anda Berhasil Login",
-						icon: "success",
-						buttons: {
-							cancel: false,
-							confirm: false,
-						},
-						timer: 2000
-						// dangerMode: true,
-					})
-					delay(1500)
+					// $.unblockUI();
+					// swal({
+					// 	title: "Success",
+					// 	text: "Anda Berhasil Login",
+					// 	icon: "success",
+					// 	buttons: {
+					// 		cancel: false,
+					// 		confirm: false,
+					// 	},
+					// 	timer: 2000
+					// 	// dangerMode: true,
+					// })
+					// delay(1500)
 					window.location.replace(server_url + "admin")
 					// console.log(response)
 				},

@@ -1,11 +1,11 @@
 <div class="main-menu">
 		<header class="header">
-			<a href="<?= base_url("admin") ?>" class="logo"></i><?= $level ?></a>
+			<a href="<?= base_url("admin") ?>" class="logo"></i>Admin</a>
 			<button type="button" class="button-close fa fa-times js__menu_close"></button>
 			<div class="user">
 				<a href="#" class="avatar"><img src="<?= base_url() ?>assets/images/avatar-sm-5.jpg" alt=""><span class="status online"></span></a>
-				<h5 class="name"><a href="3"><?= $nama ?></a></h5>
-				<h5 class="position"><?= $level ?></h5>
+				<h5 class="name"><a href="3">Administratif</a></h5>
+				<h5 class="position">Admin</h5>
 				<!-- /.name -->
 
 			</div>
@@ -21,23 +21,8 @@
 					<li <?php if($header == "Halaman Utama"){echo 'class="current"';} ?>>
 						<a class="waves-effect" href="<?= base_url("admin") ?>"><i class="menu-icon mdi mdi-view-dashboard"></i><span>Halaman Utama</span></a>
 					</li>
-					<li <?php if($header == "Halaman Jam Kerja"){echo 'class="current"';} ?>>
-						<a class="waves-effect" href="<?= base_url("admin/jam_kerja") ?>"><i class="menu-icon fa fa-clock-o"></i><span>Halaman Jam Kerja</span></a>
-					</li>
-					<li <?php if($header == "Halaman Pengaturan Libur"){echo 'class="current"';} ?>>
-						<a class="waves-effect" href="<?= base_url("admin/libur") ?>"><i class="menu-icon fa fa-calendar"></i><span>Pengaturan Libur</span></a>
-					</li>
-					<li <?php if($header == "Halaman Pengaturan Perjalanan Dinas"){echo 'class="current"';} ?>>
-						<a class="waves-effect" href="<?= base_url("admin/perjalanan_dinas") ?>"><i class="menu-icon fa fa-calendar"></i><span>Perjalanan Dinas</span></a>
-					</li>
-					<li <?php if($header == "Halaman Pengaturan Lokasi Dinas"){echo 'class="current"';} ?>>
-						<a class="waves-effect" href="<?= base_url("admin/pengaturan") ?>"><i class="menu-icon mdi mdi-desktop-mac"></i><span>Pengaturan Lokasi Dinas</span></a>
-					</li>
-					<li <?php if($header == "Halaman Karyawan"){echo 'class="current"';} ?>>
-						<a class="waves-effect" href="<?= base_url("admin/karyawan") ?>"><i class="menu-icon zmdi zmdi-accounts-alt"></i><span>Halaman Karyawan</span></a>
-					</li>
-					<li <?php if($header == "Halaman Laporan"){echo 'class="current"';} ?>>
-						<a class="waves-effect" href="<?= base_url("admin/laporan") ?>"><i class="menu-icon zmdi zmdi-comment-list"></i><span>Halaman Laporan</span></a>
+					<li <?php if($header == "Halaman Topsis"){echo 'class="current"';} ?>>
+						<a class="waves-effect" href="<?= base_url("admin/topsis") ?>"><i class="menu-icon fa fa-clock-o"></i><span>Halaman Topsis</span></a>
 					</li>
 					<li >
 						<a class="waves-effect" href="<?= base_url("admin/logout") ?>"><i class="menu-icon mdi mdi-logout"></i><span>Logout</span></a>
